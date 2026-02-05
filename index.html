@@ -1,0 +1,815 @@
+<!DOCTYPE html>
+<html lang="zh-HK">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>普通話水平測試朗讀作品6號</title>
+    <style>
+        /* 字體棧設置：確保圓體效果 */
+        :root {
+            --main-font: "Yuanti SC", "YouYuan", "幼圆", "Microsoft YaHei", sans-serif;
+            --primary-color: #4a90e2;
+            --gray-text: #666;
+            --bg-color: #f5f7fa;
+            --gold-color: #f1c40f;
+            --track-color: #e0e0e0;
+        }
+
+        body {
+            font-family: var(--main-font);
+            margin: 0;
+            padding: 0;
+            background-color: var(--bg-color);
+            color: #333;
+            padding-bottom: 120px; /* 增加底部空間給新的獎勵欄 */
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        /* 標題區域 */
+        .header {
+            position: fixed;
+            top: 0;
+            right: 0;
+            width: 100%;
+            background: rgba(255, 255, 255, 0.95);
+            padding: 10px 20px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            text-align: right;
+            z-index: 100;
+            box-sizing: border-box;
+        }
+
+        .header h1 {
+            margin: 0;
+            font-size: 1.2rem;
+            color: #333;
+        }
+
+        .disclaimer {
+            font-size: 0.8rem;
+            color: gray;
+            margin-top: 5px;
+            line-height: 1.4;
+        }
+
+        /* 登錄遮罩層 */
+        #login-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(255, 255, 255, 1);
+            z-index: 1000;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+        }
+
+        .login-box {
+            background: white;
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            text-align: center;
+            width: 80%;
+            max-width: 400px;
+        }
+
+        .login-box input {
+            width: 100%;
+            padding: 12px;
+            margin: 10px 0;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            font-family: var(--main-font);
+            box-sizing: border-box;
+            font-size: 16px; /* 防止iOS縮放 */
+        }
+
+        .login-btn {
+            background: var(--primary-color);
+            color: white;
+            border: none;
+            padding: 12px 40px;
+            border-radius: 25px;
+            cursor: pointer;
+            font-size: 1.1rem;
+            margin-top: 15px;
+            font-family: var(--main-font);
+            width: 100%;
+            transition: background 0.2s;
+        }
+
+        .login-btn:active {
+            background: #357abd;
+            transform: scale(0.98);
+        }
+
+        /* 主要內容區域 */
+        .container {
+            max-width: 800px;
+            margin: 140px auto 20px;
+            padding: 20px;
+        }
+
+        .sentence-card {
+            background: white;
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+            transition: all 0.3s ease;
+            border-left: 5px solid transparent;
+        }
+
+        .sentence-card.active {
+            border-left: 5px solid var(--primary-color);
+            transform: translateX(5px);
+        }
+
+        .pinyin {
+            color: #888;
+            font-size: 0.9rem;
+            margin-bottom: 5px;
+            line-height: 1.5;
+        }
+
+        .chinese {
+            font-size: 1.3rem;
+            margin-bottom: 15px;
+            line-height: 1.6;
+        }
+
+        .controls {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+
+        .play-btn {
+            background: white;
+            border: 1px solid var(--primary-color);
+            color: var(--primary-color);
+            width: 44px;
+            height: 44px;
+            border-radius: 50%;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.2rem;
+            transition: all 0.2s;
+            /* 防止雙擊選中 */
+            user-select: none;
+            -webkit-user-select: none;
+        }
+
+        .play-btn:active {
+            background: #f0f7ff;
+            transform: scale(0.9);
+        }
+
+        /* 底部獎勵欄 */
+        .reward-bar {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            background: white;
+            padding: 15px 0;
+            box-shadow: 0 -4px 20px rgba(0,0,0,0.08);
+            z-index: 90;
+            height: 80px;
+            overflow-x: auto;
+            display: flex;
+            align-items: center;
+        }
+
+        .progress-track {
+            position: relative;
+            display: flex;
+            align-items: center;
+            padding: 0 30px;
+            min-width: max-content;
+            gap: 20px;
+        }
+
+        .progress-track::before {
+            content: '';
+            position: absolute;
+            left: 30px;
+            right: 40px;
+            top: 50%;
+            height: 4px;
+            background: var(--track-color);
+            border-radius: 2px;
+            z-index: 0;
+            transform: translateY(-50%);
+        }
+
+        .star {
+            position: relative;
+            z-index: 1;
+            width: 32px;
+            height: 32px;
+            background: white;
+            border: 3px solid var(--track-color);
+            border-radius: 50%;
+            color: var(--track-color);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 16px;
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            flex-shrink: 0;
+        }
+
+        .star.earned {
+            border-color: var(--gold-color);
+            background: var(--gold-color);
+            color: white;
+            transform: scale(1.1);
+            box-shadow: 0 0 10px rgba(241, 196, 15, 0.5);
+        }
+
+        .trophy {
+            position: relative;
+            z-index: 1;
+            width: 45px;
+            height: 45px;
+            background: white;
+            border: 3px solid var(--track-color);
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 24px;
+            flex-shrink: 0;
+            filter: grayscale(100%);
+            opacity: 0.6;
+            transition: all 0.5s ease;
+            margin-left: 10px;
+        }
+
+        .trophy.earned {
+            border-color: var(--gold-color);
+            background: #fff9db;
+            filter: grayscale(0%);
+            opacity: 1;
+            transform: scale(1.2) rotate(-10deg);
+            box-shadow: 0 0 15px rgba(241, 196, 15, 0.6);
+        }
+
+        /* 結束按鈕與彈窗 */
+        .complete-section {
+            text-align: center;
+            margin-top: 40px;
+            display: none;
+        }
+
+        .complete-btn {
+            background: #27ae60;
+            color: white;
+            border: none;
+            padding: 15px 40px;
+            border-radius: 30px;
+            font-size: 1.1rem;
+            cursor: pointer;
+            font-family: var(--main-font);
+            box-shadow: 0 4px 10px rgba(39, 174, 96, 0.3);
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+            z-index: 2000;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .modal-content {
+            background: white;
+            padding: 30px;
+            border-radius: 15px;
+            text-align: center;
+            width: 80%;
+            max-width: 400px;
+            animation: popIn 0.3s ease;
+        }
+
+        @keyframes popIn {
+            from { transform: scale(0.8); opacity: 0; }
+            to { transform: scale(1); opacity: 1; }
+        }
+
+        .modal-btn {
+            margin-top: 20px;
+            padding: 10px 30px;
+            background: var(--primary-color);
+            color: white;
+            border: none;
+            border-radius: 20px;
+            cursor: pointer;
+            font-family: var(--main-font);
+        }
+
+        .back-home {
+            display: none;
+            text-align: center;
+            margin-top: 20px;
+            padding-bottom: 100px;
+        }
+        
+        .back-home a {
+            text-decoration: none;
+            color: #333;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 10px;
+            font-weight: bold;
+        }
+
+        .book-icon {
+            font-size: 2.5rem;
+        }
+
+        /* 開發者模式 */
+        #dev-toggle {
+            position: fixed;
+            top: 10px;
+            left: 10px;
+            z-index: 10000;
+            cursor: pointer;
+            background: rgba(255,255,255,0.8);
+            border-radius: 50%;
+            width: 30px;
+            height: 30px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        #dev-panel {
+            display: none;
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            background: rgba(0, 0, 0, 0.95);
+            color: #0f0;
+            padding: 20px;
+            z-index: 9999;
+            box-sizing: border-box;
+            height: 200px;
+            overflow-y: auto;
+            font-family: monospace;
+            border-top: 2px solid #0f0;
+        }
+
+        #dev-panel button {
+            background: #333;
+            color: white;
+            border: 1px solid #555;
+            padding: 5px 10px;
+            margin-right: 10px;
+            cursor: pointer;
+        }
+
+        .dev-active audio {
+            position: fixed;
+            bottom: 210px;
+            left: 10px;
+            z-index: 10001;
+            display: block !important;
+            width: 90%;
+        }
+    </style>
+</head>
+<body>
+
+    <div id="dev-toggle">🛠️</div>
+
+    <div id="login-overlay">
+        <!-- 改為 form 結構，支持手機鍵盤「前往」鍵 -->
+        <form class="login-box" onsubmit="event.preventDefault(); handleLogin();">
+            <h2>開始練習</h2>
+            <input type="text" id="username" placeholder="請輸入名字" autocomplete="off" />
+            <input type="password" id="password" placeholder="請輸入密碼" />
+            <button type="submit" class="login-btn">開始練習</button>
+        </form>
+    </div>
+
+    <div class="header">
+        <h1>普通話水平測試朗讀作品6號</h1>
+        <div class="disclaimer">
+            本網頁拼音均由AI生成，標準注音請參考《普通話水平測試實施綱要（2021年版）》。<br>
+            錄音僅供參考。網頁僅供VTC内部使用。<br>
+            職業訓練局普通話培訓測試中心版權所有。
+        </div>
+    </div>
+
+    <div class="container" id="content-area"></div>
+
+    <div class="complete-section" id="complete-section">
+        <button class="complete-btn" onclick="showCompletionModal()">我已完成跟讀練習啦！</button>
+    </div>
+
+    <div class="back-home" id="back-home">
+        <a href="https://echo02-game.github.io/pscleadreading-hub/">
+            <span class="book-icon">📖</span>
+            <span>回主目錄</span>
+        </a>
+    </div>
+
+    <div class="reward-bar">
+        <div class="progress-track" id="progress-track"></div>
+    </div>
+
+    <div class="modal" id="modal">
+        <div class="modal-content">
+            <h3>太棒啦！</h3>
+            <p>打卡信息已複製，快去分享努力後的喜悅吧！</p>
+            <button class="modal-btn" onclick="closeModal()">關閉</button>
+        </div>
+    </div>
+
+    <audio id="main-audio" preload="auto">
+        <source src="pscleadreading06.mp4" type="video/mp4">
+        您的瀏覽器不支持音頻播放。
+    </audio>
+
+    <div id="dev-panel">
+        <h3>開發者模式 - 時間軸標記工具</h3>
+        <p>狀態: <span id="dev-status">就緒</span> | 時間: <span id="current-time">0.00</span>s</p>
+        <div style="margin-bottom: 10px;">
+            <button onclick="startRecording()">開始錄製</button>
+            <button onclick="markNextSentence()">標記下一句 (Space)</button>
+            <button onclick="exportJSON()">複製 JSON</button>
+        </div>
+        <textarea id="json-output" style="width: 100%; height: 80px; background: #222; color: #ccc; border: 1px solid #444; font-family: monospace;"></textarea>
+    </div>
+
+    <!-- 腳本放在 body 底部，確保元素已加載 -->
+    <script>
+        // --- 數據 ---
+        let sentenceData = [
+    {
+        "text": "作品6號。",
+        "pinyin": "Zuò pǐn liù hào.",
+        "start": 0,
+        "end": 3.81773
+    },
+    {
+        "text": "立春過後，大地漸漸從沉睡中蘇醒過來。",
+        "pinyin": "Lì chūn guò hòu, dà dì jiàn jiàn cóng chén shuì zhōng sū xǐng guò lái.",
+        "start": 3.81773,
+        "end": 11.127434
+    },
+    {
+        "text": "冰雪融化，草木萌發，各種花次第開放。",
+        "pinyin": "Bīng xuě róng huà, cǎo mù méng fā, gè zhǒng huā cì dì kāi fàng.",
+        "start": 11.127434,
+        "end": 18.384016
+    },
+    {
+        "text": "再過兩個月，燕子翩然歸來。",
+        "pinyin": "Zài guò liǎng gè yuè, yàn zi piān rán guī lái.",
+        "start": 18.384016,
+        "end": 23.462284
+    },
+    {
+        "text": "不久，布穀鳥也來了。",
+        "pinyin": "Bù jiǔ, bù gǔ niǎo yě lái le.",
+        "start": 23.462284,
+        "end": 26.931494
+    },
+    {
+        "text": "於是轉入炎熱的夏季，這是植物孕育果實的時期。",
+        "pinyin": "Yú shì zhuǎn rù yán rè de xià jì, zhè shì zhí wù yùn yù guǒ shí de shí qī.",
+        "start": 26.931494,
+        "end": 34.457746
+    },
+    {
+        "text": "到了秋天，果實成熟，植物的葉子漸漸變黃，在秋風中簌簌地落下來。",
+        "pinyin": "Dào le qiū tiān, guǒ shí chéng shú, zhí wù de yè zi jiàn jiàn biàn huáng, zài qiū fēng zhōng sù sù de luò xià lái.",
+        "start": 34.457746,
+        "end": 46.562414
+    },
+    {
+        "text": "北雁南飛，活躍在田間草際的昆蟲也都銷聲匿跡。",
+        "pinyin": "Běi yàn nán fēi, huó yuè zài tián jiān cǎo jì de kūn chóng yě dōu xiāo shēng nì jì.",
+        "start": 46.562414,
+        "end": 55.806918
+    },
+    {
+        "text": "到處呈現一片衰草連天的景象，準備迎接風雪載途的寒冬。",
+        "pinyin": "Dào chù chéng xiàn yí piàn shuāi cǎo lián tiān de jǐng xiàng, zhǔn bèi yíng jiē fēng xuě zài tú de hán dōng.",
+        "start": 55.806918,
+        "end": 65.877427
+    },
+    {
+        "text": "在地球上溫帶和亞熱帶區域裏，年年如是，周而復始。",
+        "pinyin": "Zài dì qiú shàng wēn dài hé yà rè dài qū yù lǐ, nián nián rú shì, zhōu ér fù shǐ.",
+        "start": 65.877427,
+        "end": 75.93332
+    },
+    {
+        "text": "幾千年來，勞動人民注意了草木榮枯、候鳥去來等自然現象同氣候的關係，據以安排農事。",
+        "pinyin": "Jǐ qiān nián lái, láo dòng rén mín zhù yì le cǎo mù róng kū, hòu niǎo qù lái děng zì rán xiàn xiàng tóng qì hòu de guān xi, jù yǐ ān pái nóng shì.",
+        "start": 75.93332,
+        "end": 89.78379
+    },
+    {
+        "text": "杏花開了，就好像大自然在傳語要趕快耕地；桃花開了，又好像在暗示要趕快種穀子。",
+        "pinyin": "Xìng huā kāi le, jiù hǎo xiàng dà zì rán zài chuán yǔ yào gǎn kuài gēng dì; táo huā kāi le, yòu hǎo xiàng zài àn shì yào gǎn kuài zhǒng gǔ zi.",
+        "start": 89.78379,
+        "end": 104.331931
+    },
+    {
+        "text": "布穀鳥開始唱歌，勞動人民懂得它在唱什麼：",
+        "pinyin": "Bù gǔ niǎo kāi shǐ chàng gē, láo dòng rén mín dǒng de tā zài chàng shén me:",
+        "start": 104.331931,
+        "end": 111.657184
+    },
+    {
+        "text": "“阿公阿婆，割麥插禾。”",
+        "pinyin": " “ Ā gōng ā pó, gē mài chā hé. ” ",
+        "start": 111.657184,
+        "end": 115.902332
+    },
+    {
+        "text": "這樣看來，花香鳥語，草長鶯飛，都是大自然的語言。",
+        "pinyin": "Zhè yàng kàn lái, huā xiāng niǎo yǔ, cǎo zhǎng yīng fēi, dōu shì dà zì rán de yǔ yán.",
+        "start": 115.902332,
+        "end": 124.441562
+    },
+    {
+        "text": "這些自然現象，我國古代勞動人民稱它為物候。",
+        "pinyin": "Zhè xiē zì rán xiàn xiàng, wǒ guó gǔ dài láo dòng rén mín chēng tā wéi wù hòu.",
+        "start": 124.441562,
+        "end": 133.327449
+    },
+    {
+        "text": "物候知識在我國起源很早。",
+        "pinyin": "Wù hòu zhī shi zài wǒ guó qǐ yuán hěn zǎo.",
+        "start": 133.327449,
+        "end": 138.549407
+    },
+    {
+        "text": "古代流傳下來的許多農諺就包含了豐富的物候知識。",
+        "pinyin": "Gǔ dài liú chuán xià lái de xǔ duō nóng yàn jiù bāo hán le fēng fù de wù hòu zhī shi.",
+        "start": 138.549407,
+        "end": 145.609156
+    },
+    {
+        "text": "到了近代，利用物候知識來研究農業生產，已經發展為一門科學，就是物候學。",
+        "pinyin": "Dào le jìn dài, lì yòng wù hòu zhī shi lái yán jiū nóng yè shēng chǎn, yǐ jīng fā zhǎn wéi yì mén kē xué, jiù shì wù hòu xué.",
+        "start": 145.609156,
+        "end": 159.049663
+    },
+    {
+        "text": "物候學記錄植物的生長榮枯，動物的養育往來，如桃花開、燕子來等自然現象，從而瞭解隨着時節推移的氣候變化和這種變化對動植物的影響。",
+        "pinyin": "Wù hòu xué jì lù zhí wù de shēng zhǎng róng kū, dòng wù de yǎng yù wǎng lái, rú táo huā kāi, yàn zi lái děng zì rán xiàn xiàng, cóng ér liǎo jiě suí zhe shí jié tuī yí de qì hòu biàn huà hé zhè zhǒng biàn huà duì dòng zhí wù de yǐng xiǎng.",
+        "start": 159.049663,
+        "end": 180.973859
+    }
+]
+
+        let currentUser = "";
+        let audio;
+        let playingIndex = -1;
+        let isPaused = false;
+        let completedSentences = new Set();
+        let isDevRecording = false;
+        let recordingIndex = 0;
+        let recordingData = [];
+
+        // 初始化
+        window.onload = function() {
+            // 初始化音頻對象（此時DOM肯定存在）
+            audio = document.getElementById('main-audio');
+            if(audio) {
+                audio.addEventListener('timeupdate', checkAudioTime);
+            }
+
+            const contentArea = document.getElementById('content-area');
+            const track = document.getElementById('progress-track');
+
+            sentenceData.forEach((item, index) => {
+                // 卡片
+                let card = document.createElement('div');
+                card.className = 'sentence-card';
+                card.id = `card-${index}`;
+                card.innerHTML = `
+                    <div class="pinyin">${item.pinyin}</div>
+                    <div class="chinese">${item.text}</div>
+                    <div class="controls">
+                        <div class="play-btn" onclick="togglePlay(${index})" id="btn-${index}">▶</div>
+                    </div>
+                `;
+                contentArea.appendChild(card);
+
+                // 星星
+                let star = document.createElement('div');
+                star.className = 'star';
+                star.innerHTML = '★';
+                star.id = `star-${index}`;
+                track.appendChild(star);
+            });
+
+            // 獎杯
+            let trophy = document.createElement('div');
+            trophy.className = 'trophy';
+            trophy.id = 'trophy';
+            trophy.innerHTML = '🏆';
+            track.appendChild(trophy);
+
+            // 開發者模式監聽
+            document.addEventListener('keydown', function(e) {
+                // 只有在開發模式下才響應空格
+                if (isDevRecording && e.code === 'Space') {
+                    e.preventDefault();
+                    markNextSentence();
+                }
+            });
+
+            document.getElementById('dev-toggle').addEventListener('click', function() {
+                let panel = document.getElementById('dev-panel');
+                if (panel.style.display === 'none' || panel.style.display === '') {
+                    panel.style.display = 'block';
+                    document.body.classList.add('dev-active');
+                } else {
+                    panel.style.display = 'none';
+                    document.body.classList.remove('dev-active');
+                }
+            });
+        };
+
+        // 登錄函數
+        function handleLogin() {
+            const nameInput = document.getElementById('username');
+            const passInput = document.getElementById('password');
+            
+            // 去除空格並轉小寫，增加容錯
+            const password = passInput.value.trim().toLowerCase();
+            const username = nameInput.value.trim();
+
+            if (password === 'vtcpsc' && username !== '') {
+                currentUser = username;
+                document.getElementById('login-overlay').style.display = 'none';
+            } else {
+                alert('請輸入正確的名字和密碼 (vtcpsc)');
+            }
+        }
+
+        // 播放控制
+        function togglePlay(index) {
+            let btn = document.getElementById(`btn-${index}`);
+            
+            if (playingIndex === index) {
+                if (audio.paused) {
+                    audio.play();
+                    btn.innerHTML = '❚❚';
+                    isPaused = false;
+                } else {
+                    audio.pause();
+                    btn.innerHTML = '▶';
+                    isPaused = true;
+                }
+            } else {
+                if (playingIndex !== -1) {
+                    document.getElementById(`btn-${playingIndex}`).innerHTML = '▶';
+                }
+                
+                playingIndex = index;
+                // 如果有時間數據則跳轉
+                if (sentenceData[index].end > 0) {
+                   audio.currentTime = sentenceData[index].start;
+                }
+                
+                audio.play();
+                btn.innerHTML = '❚❚';
+                isPaused = false;
+
+                document.querySelectorAll('.sentence-card').forEach(c => c.classList.remove('active'));
+                document.getElementById(`card-${index}`).classList.add('active');
+            }
+        }
+
+        // 時間監聽
+        function checkAudioTime() {
+            if (playingIndex === -1) return;
+            
+            if (document.getElementById('dev-panel').style.display === 'block') {
+                document.getElementById('current-time').innerText = audio.currentTime.toFixed(3);
+            }
+
+            let endTime = sentenceData[playingIndex].end;
+            if (endTime > 0 && audio.currentTime >= endTime) {
+                audio.pause();
+                document.getElementById(`btn-${playingIndex}`).innerHTML = '▶';
+                markSentenceComplete(playingIndex);
+                playingIndex = -1;
+            }
+        }
+
+        // 標記完成
+        function markSentenceComplete(index) {
+            if (!completedSentences.has(index)) {
+                completedSentences.add(index);
+                
+                let star = document.getElementById(`star-${index}`);
+                if (star) {
+                    star.classList.add('earned');
+                    star.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
+                }
+                
+                if (completedSentences.size === sentenceData.length) {
+                    document.getElementById('trophy').classList.add('earned');
+                    document.getElementById('complete-section').style.display = 'block';
+                    setTimeout(() => window.scrollTo(0, document.body.scrollHeight), 500);
+                }
+            }
+        }
+
+        // 完成彈窗
+        function showCompletionModal() {
+            const today = new Date();
+            const dateStr = `${today.getMonth() + 1}月${today.getDate()}日`;
+            const textToCopy = `${currentUser}已於${dateStr}完成作品6號跟讀練習！`;
+            
+            navigator.clipboard.writeText(textToCopy).then(() => {
+                document.getElementById('modal').style.display = 'flex';
+            }).catch(err => {
+                const textArea = document.createElement("textarea");
+                textArea.value = textToCopy;
+                document.body.appendChild(textArea);
+                textArea.select();
+                document.execCommand("Copy");
+                textArea.remove();
+                document.getElementById('modal').style.display = 'flex';
+            });
+        }
+
+        function closeModal() {
+            document.getElementById('modal').style.display = 'none';
+            document.getElementById('complete-section').style.display = 'none';
+            document.getElementById('back-home').style.display = 'block';
+        }
+
+        // 開發者功能
+        function startRecording() {
+            isDevRecording = true;
+            recordingIndex = 0;
+            recordingData = JSON.parse(JSON.stringify(sentenceData));
+            recordingData.forEach(d => { d.start = 0; d.end = 0; });
+            recordingData[0].start = 0;
+            
+            audio.currentTime = 0;
+            audio.play();
+            document.getElementById('dev-status').innerText = "錄製中... 聽完第1句按 Space";
+        }
+
+        function markNextSentence() {
+            if (!isDevRecording) return;
+            let now = audio.currentTime;
+            recordingData[recordingIndex].end = now;
+            
+            if (recordingIndex + 1 < recordingData.length) {
+                recordingData[recordingIndex + 1].start = now;
+                recordingIndex++;
+                document.getElementById('dev-status').innerText = `錄製第 ${recordingIndex + 1} 句...`;
+            } else {
+                isDevRecording = false;
+                audio.pause();
+                document.getElementById('dev-status').innerText = "完成！請複製JSON";
+                exportJSON();
+            }
+        }
+
+        function exportJSON() {
+            let output = JSON.stringify(recordingData, null, 4);
+            let textarea = document.getElementById('json-output');
+            textarea.value = output;
+            textarea.select();
+            document.execCommand('copy');
+            alert("JSON 已複製！");
+        }
+    </script>
+</body>
+</html>
